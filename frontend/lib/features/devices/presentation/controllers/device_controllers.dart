@@ -32,15 +32,14 @@ class DeviceListNotifier extends Notifier<DeviceListState> {
     final authState = ref.watch(authStateProvider);
 
     if (authState is Authenticated) {
-      Future.microtask(() => loadDevices());
+      _fetchDevices();
       return const DeviceListLoading();
     } else {
       return const DeviceListLoaded([]);
     }
   }
 
-  Future<void> loadDevices() async {
-    state = const DeviceListLoading();
+  Future<void> _fetchDevices() async {
     final result = await _deviceRepository.getRegisteredDevices();
     result.when(
       onSuccess: (devices) {
@@ -52,16 +51,13 @@ class DeviceListNotifier extends Notifier<DeviceListState> {
     );
   }
 
+  Future<void> loadDevices() async {
+    state = const DeviceListLoading();
+    await _fetchDevices();
+  }
+
   Future<void> refresh() async {
-    final result = await _deviceRepository.getRegisteredDevices();
-    result.when(
-      onSuccess: (devices) {
-        state = DeviceListLoaded(devices);
-      },
-      onFailure: (failure) {
-        state = DeviceListError(failure.message);
-      },
-    );
+    await _fetchDevices();
   }
 }
 

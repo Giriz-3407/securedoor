@@ -72,7 +72,6 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<void> logout() async {
-    state = const AuthLoading();
     await _authRepository.logout();
     state = const Unauthenticated();
   }

@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/providers/app_providers.dart';
 import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../shared/widgets/door_qr_dialog.dart';
 import '../../../../shared/widgets/mock_banner.dart';
 import '../../../activity/presentation/screens/activity_log_screen.dart';
 import '../../../authentication/presentation/controllers/auth_controller.dart';
@@ -163,7 +162,8 @@ class _DeviceListScreenState extends ConsumerState<DeviceListScreen> {
     final config = ref.watch(configProvider);
 
     final currentUser = (authState is Authenticated) ? authState.user : null;
-    final isAdmin = currentUser?.role.toLowerCase() == 'admin';
+    final isAdmin = currentUser?.role.toLowerCase() == 'admin' ||
+        currentUser?.email.toLowerCase() == 'admin@college.edu';
     final hasDoors = switch (deviceState) {
       DeviceListLoaded(devices: final d) => d.isNotEmpty,
       _ => false,
@@ -345,13 +345,6 @@ class _DeviceListScreenState extends ConsumerState<DeviceListScreen> {
                               final device = devices[index];
                               return _DeviceGridTile(
                                 device: device,
-                                isAdmin: isAdmin,
-                                onQrTap: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (_) => DoorQrDialog(device: device),
-                                  );
-                                },
                                 onTap: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
@@ -376,15 +369,11 @@ class _DeviceListScreenState extends ConsumerState<DeviceListScreen> {
 
 class _DeviceGridTile extends StatelessWidget {
   final Device device;
-  final bool isAdmin;
   final VoidCallback onTap;
-  final VoidCallback? onQrTap;
 
   const _DeviceGridTile({
     required this.device,
     required this.onTap,
-    this.isAdmin = false,
-    this.onQrTap,
   });
 
   @override
@@ -433,40 +422,27 @@ class _DeviceGridTile extends StatelessWidget {
                     ),
                     child: Icon(statusIcon, color: statusColor, size: 18),
                   ),
-                  Row(
-                    children: [
-                      if (isAdmin)
-                        IconButton(
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          icon: const Icon(Icons.qr_code_2_rounded, size: 20, color: AppTheme.accentBlue),
-                          tooltip: 'Generate Door QR',
-                          onPressed: onQrTap,
-                        ),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 7,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isOnline
-                              ? AppTheme.statusOnline.withValues(alpha: 0.15)
-                              : AppTheme.statusOffline.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          isOnline ? 'ONLINE' : 'OFFLINE',
-                          style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                            color: isOnline
-                                ? AppTheme.statusOnline
-                                : AppTheme.statusOffline,
-                          ),
-                        ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isOnline
+                          ? AppTheme.statusOnline.withValues(alpha: 0.15)
+                          : AppTheme.statusOffline.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      isOnline ? 'ONLINE' : 'OFFLINE',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        color: isOnline
+                            ? AppTheme.statusOnline
+                            : AppTheme.statusOffline,
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),

@@ -34,24 +34,33 @@ void main() async {
   );
 }
 
-class SecureDoorAccessApp extends ConsumerWidget {
+class SecureDoorAccessApp extends StatelessWidget {
   const SecureDoorAccessApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authStateProvider);
-
+  Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: navigatorKey,
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: switch (authState) {
-        Authenticated() => const DeviceListScreen(),
-        AuthLoading() => const _AppSplashScreen(),
-        _ => const LoginScreen(),
-      },
+      home: const AuthGate(),
     );
+  }
+}
+
+class AuthGate extends ConsumerWidget {
+  const AuthGate({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authStateProvider);
+
+    return switch (authState) {
+      Authenticated() => const DeviceListScreen(),
+      AuthInitial() => const _AppSplashScreen(),
+      _ => const LoginScreen(),
+    };
   }
 }
 
