@@ -38,7 +38,7 @@ class SecureDoorAccessApp extends ConsumerWidget {
     return MaterialApp(
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
+      theme: AppTheme.lightTheme,
       home: switch (authState) {
         Authenticated() => const DeviceListScreen(),
         AuthLoading() => const _AppSplashScreen(),
@@ -69,7 +69,7 @@ class _AppSplashScreen extends StatelessWidget {
             Text(
               'Verifying Security Context...',
               style: TextStyle(
-                color: Color(0xFF94A3B8),
+                color: AppTheme.textSecondary,
                 fontSize: 13,
                 letterSpacing: 0.3,
               ),

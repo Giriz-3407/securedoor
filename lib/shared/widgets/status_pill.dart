@@ -43,7 +43,7 @@ class StatusPill extends StatelessWidget {
       ),
       LatchState.unknown => const StatusPill(
         label: 'Unknown',
-        color: Colors.grey,
+        color: AppTheme.textSecondary,
         icon: Icons.help_outline_rounded,
       ),
     };
@@ -63,7 +63,7 @@ class StatusPill extends StatelessWidget {
       ),
       DoorState.unknown => const StatusPill(
         label: 'Position Unknown',
-        color: Colors.grey,
+        color: AppTheme.textSecondary,
         icon: Icons.help_outline_rounded,
       ),
     };

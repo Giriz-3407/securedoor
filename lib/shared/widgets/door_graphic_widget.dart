@@ -58,7 +58,7 @@ class DoorGraphicWidget extends StatelessWidget {
                 width: 120,
                 height: 160,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
+                  color: AppTheme.surfaceLight,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: primaryColor.withValues(alpha: 0.6),
@@ -73,7 +73,7 @@ class DoorGraphicWidget extends StatelessWidget {
                           ? Icons.meeting_room_outlined
                           : Icons.sensor_door_rounded,
                       size: 56,
-                      color: isOnline ? primaryColor : Colors.grey,
+                      color: isOnline ? primaryColor : AppTheme.textSecondary,
                     ),
                     const SizedBox(height: 8),
                     Container(
@@ -148,7 +148,7 @@ class DoorGraphicWidget extends StatelessWidget {
                 ? 'Heartbeat signal lost. Check Wi-Fi connection of ESP32.'
                 : 'Physical state monitored via limit switches & optical encoder',
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
           ),
         ],
       ),

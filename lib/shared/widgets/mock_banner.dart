@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_theme.dart';
-
 class MockBanner extends StatelessWidget {
   const MockBanner({super.key});
 
@@ -9,10 +7,10 @@ class MockBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
       decoration: const BoxDecoration(
-        color: Color(0xFF3B2D00),
-        border: Border(bottom: BorderSide(color: Color(0xFFCA8A04), width: 1)),
+        color: Color(0xFFFEF3C7),
+        border: Border(bottom: BorderSide(color: Color(0xFFFDE68A), width: 1)),
       ),
       child: const Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -20,13 +18,13 @@ class MockBanner extends StatelessWidget {
           Icon(
             Icons.science_outlined,
             size: 14,
-            color: AppTheme.statusUnlocked,
+            color: Color(0xFFB45309),
           ),
           SizedBox(width: 6),
           Text(
             'DEMO / LAB SIMULATION MODE (Isolated Repository)',
             style: TextStyle(
-              color: AppTheme.statusUnlocked,
+              color: Color(0xFFB45309),
               fontSize: 11,
               fontWeight: FontWeight.bold,
               letterSpacing: 0.5,

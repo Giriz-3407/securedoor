@@ -40,7 +40,7 @@ class CommandConfirmationSheet extends StatelessWidget {
                 width: 44,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.white24,
+                  color: AppTheme.borderColor,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -72,14 +72,14 @@ class CommandConfirmationSheet extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                          color: AppTheme.textPrimary,
                         ),
                       ),
                       Text(
                         device.name,
                         style: const TextStyle(
                           fontSize: 13,
-                          color: Color(0xFF94A3B8),
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                     ],
@@ -91,9 +91,9 @@ class CommandConfirmationSheet extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFF0F172A),
+                color: AppTheme.surfaceLight,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF334155)),
+                border: Border.all(color: AppTheme.borderColor),
               ),
               child: Row(
                 children: [
@@ -108,7 +108,7 @@ class CommandConfirmationSheet extends StatelessWidget {
                       'This physical actuation requires device biometric verification (Fingerprint or Face ID).',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Color(0xFFCBD5E1),
+                        color: AppTheme.textPrimary,
                         height: 1.35,
                       ),
                     ),

@@ -33,7 +33,7 @@ class DeviceListScreen extends ConsumerWidget {
             if (currentUser != null)
               Text(
                 '${currentUser.fullName} (${currentUser.role})',
-                style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
               ),
           ],
         ),
@@ -108,7 +108,7 @@ class DeviceListScreen extends ConsumerWidget {
                           Text(
                             msg,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.white70),
+                            style: const TextStyle(color: AppTheme.textSecondary),
                           ),
                           const SizedBox(height: 20),
                           ElevatedButton.icon(
@@ -234,8 +234,8 @@ class _DeviceGridTile extends StatelessWidget {
                           ? [
                               BoxShadow(
                                 color: AppTheme.statusOnline
-                                    .withValues(alpha: 0.6),
-                                blurRadius: 6,
+                                    .withValues(alpha: 0.35),
+                                blurRadius: 4,
                               ),
                             ]
                           : [],
@@ -255,7 +255,7 @@ class _DeviceGridTile extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppTheme.textPrimary,
                       letterSpacing: 0.3,
                     ),
                   ),

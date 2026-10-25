@@ -95,7 +95,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 0.5,
-                              color: Colors.white,
+                              color: AppTheme.textPrimary,
                             ),
                           ),
                           const SizedBox(height: 6),
@@ -104,7 +104,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
-                              color: Color(0xFF94A3B8),
+                              color: AppTheme.textSecondary,
                             ),
                           ),
                           const SizedBox(height: 32),
@@ -179,7 +179,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   _obscurePassword
                                       ? Icons.visibility_outlined
                                       : Icons.visibility_off_outlined,
-                                  color: Colors.grey,
+                                  color: AppTheme.textSecondary,
                                 ),
                                 onPressed: () {
                                   setState(() {
@@ -218,10 +218,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           Container(
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0F172A),
+                              color: AppTheme.surfaceLight,
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: const Color(0xFF334155),
+                                color: AppTheme.borderColor,
                               ),
                             ),
                             child: Column(
@@ -240,7 +240,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                                        color: AppTheme.textPrimary,
                                       ),
                                     ),
                                   ],
@@ -251,9 +251,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   runSpacing: 8,
                                   children: [
                                     ActionChip(
+                                      backgroundColor: AppTheme.surfaceColor,
+                                      side: const BorderSide(
+                                        color: AppTheme.borderColor,
+                                      ),
                                       label: const Text(
                                         'Operator Profile',
-                                        style: TextStyle(fontSize: 11),
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: AppTheme.textPrimary,
+                                        ),
                                       ),
                                       onPressed: () => _fillCredentials(
                                         'engineer@college.edu',
@@ -261,9 +268,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       ),
                                     ),
                                     ActionChip(
+                                      backgroundColor: AppTheme.surfaceColor,
+                                      side: const BorderSide(
+                                        color: AppTheme.borderColor,
+                                      ),
                                       label: const Text(
                                         'Admin Profile',
-                                        style: TextStyle(fontSize: 11),
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: AppTheme.textPrimary,
+                                        ),
                                       ),
                                       onPressed: () => _fillCredentials(
                                         'admin@college.edu',

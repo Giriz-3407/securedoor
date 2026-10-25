@@ -162,7 +162,7 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 13,
-                            color: Color(0xFF94A3B8),
+                            color: AppTheme.textSecondary,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -227,18 +227,18 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
                         height: 220,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: const Color(0xFF1E293B),
+                          color: AppTheme.surfaceColor,
                           border: Border.all(
-                            color: stateColor.withValues(alpha: 0.6),
+                            color: stateColor.withValues(alpha: 0.5),
                             width: 3,
                           ),
                           boxShadow: [
                             BoxShadow(
                               color: stateColor.withValues(
-                                alpha: isOnline ? 0.25 : 0.05,
+                                alpha: isOnline ? 0.15 : 0.05,
                               ),
-                              blurRadius: 36,
-                              spreadRadius: 4,
+                              blurRadius: 28,
+                              spreadRadius: 2,
                             ),
                           ],
                         ),
@@ -322,14 +322,14 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
                         Icon(
                           Icons.fingerprint_rounded,
                           size: 15,
-                          color: Color(0xFF64748B),
+                          color: AppTheme.textSecondary,
                         ),
                         SizedBox(width: 6),
                         Text(
                           'Requires phone biometric authentication',
                           style: TextStyle(
                             fontSize: 11,
-                            color: Color(0xFF64748B),
+                            color: AppTheme.textSecondary,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -340,10 +340,10 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B),
+                        color: AppTheme.surfaceColor,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: const Color(0xFF334155),
+                          color: AppTheme.borderColor,
                           width: 1,
                         ),
                       ),
@@ -366,7 +366,7 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
                               Container(
                                 width: 1,
                                 height: 36,
-                                color: const Color(0xFF334155),
+                                color: AppTheme.borderColor,
                               ),
                               Expanded(
                                 child: _buildInfoItem(
@@ -381,7 +381,7 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
                             ],
                           ),
                           const Divider(
-                            color: Color(0xFF334155),
+                            color: AppTheme.borderColor,
                             height: 20,
                             thickness: 1,
                           ),
@@ -392,20 +392,20 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
                                   icon: Icons.timer_outlined,
                                   label: 'Heartbeat',
                                   value: lastSeenStr,
-                                  valueColor: Colors.white,
+                                  valueColor: AppTheme.textPrimary,
                                 ),
                               ),
                               Container(
                                 width: 1,
                                 height: 36,
-                                color: const Color(0xFF334155),
+                                color: AppTheme.borderColor,
                               ),
                               Expanded(
                                 child: _buildInfoItem(
                                   icon: Icons.router_outlined,
                                   label: 'Node IP',
                                   value: device.ipAddress ?? '192.168.1.105',
-                                  valueColor: const Color(0xFFCBD5E1),
+                                  valueColor: AppTheme.textPrimary,
                                   isMonospace: true,
                                 ),
                               ),
@@ -435,7 +435,7 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: const Color(0xFF94A3B8)),
+          Icon(icon, size: 20, color: AppTheme.textSecondary),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -445,7 +445,7 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
                   label,
                   style: const TextStyle(
                     fontSize: 10,
-                    color: Color(0xFF94A3B8),
+                    color: AppTheme.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),

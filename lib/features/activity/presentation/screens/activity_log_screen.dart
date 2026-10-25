@@ -72,7 +72,7 @@ class _ActivityLogScreenState extends ConsumerState<ActivityLogScreen> {
                         Text(
                           msg,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.white70),
+                          style: const TextStyle(color: AppTheme.textSecondary),
                         ),
                       ],
                     ),
@@ -85,7 +85,7 @@ class _ActivityLogScreenState extends ConsumerState<ActivityLogScreen> {
                       ? const Center(
                           child: Text(
                             'No activity recorded yet.',
-                            style: TextStyle(color: Color(0xFF94A3B8)),
+                            style: TextStyle(color: AppTheme.textSecondary),
                           ),
                         )
                       : ListView.separated(
@@ -151,7 +151,7 @@ class _ActivityLogCard extends StatelessWidget {
     final opColor = switch (log.operation) {
       OperationType.open => AppTheme.statusUnlocked,
       OperationType.close => AppTheme.statusLocked,
-      _ => Colors.white,
+      _ => AppTheme.textPrimary,
     };
 
     return Card(
@@ -167,7 +167,7 @@ class _ActivityLogCard extends StatelessWidget {
                   timeStr,
                   style: const TextStyle(
                     fontSize: 12,
-                    color: Color(0xFF94A3B8),
+                    color: AppTheme.textSecondary,
                   ),
                 ),
                 Container(
@@ -197,7 +197,7 @@ class _ActivityLogCard extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: AppTheme.textPrimary,
               ),
             ),
             const SizedBox(height: 6),
@@ -217,7 +217,7 @@ class _ActivityLogCard extends StatelessWidget {
                 const Icon(
                   Icons.fingerprint_rounded,
                   size: 14,
-                  color: Color(0xFF64748B),
+                  color: AppTheme.textSecondary,
                 ),
                 const SizedBox(width: 4),
                 Expanded(
@@ -226,7 +226,7 @@ class _ActivityLogCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 12,
-                      color: Color(0xFFCBD5E1),
+                      color: AppTheme.textPrimary,
                     ),
                   ),
                 ),
@@ -259,7 +259,7 @@ class _ActivityLogCard extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 10,
                 fontFamily: 'monospace',
-                color: Color(0xFF475569),
+                color: AppTheme.textMuted,
               ),
             ),
           ],

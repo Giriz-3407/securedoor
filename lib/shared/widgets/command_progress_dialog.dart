@@ -95,7 +95,7 @@ class CommandProgressDialog extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: AppTheme.textPrimary,
               ),
             ),
             const SizedBox(height: 10),
@@ -104,7 +104,7 @@ class CommandProgressDialog extends StatelessWidget {
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 14,
-                color: Color(0xFFCBD5E1),
+                color: AppTheme.textSecondary,
                 height: 1.4,
               ),
             ),
@@ -120,6 +120,9 @@ class CommandProgressDialog extends StatelessWidget {
                     backgroundColor: isSuccess
                         ? AppTheme.accentBlue
                         : AppTheme.surfaceLight,
+                    foregroundColor: isSuccess
+                        ? Colors.white
+                        : AppTheme.textPrimary,
                   ),
                   onPressed: onDismiss,
                   child: const Text('Close'),
@@ -162,7 +165,7 @@ class CommandProgressDialog extends StatelessWidget {
           decoration: BoxDecoration(
             color: isCurrent
                 ? AppTheme.accentBlue
-                : (isPassed ? AppTheme.statusOnline : const Color(0xFF334155)),
+                : (isPassed ? AppTheme.statusOnline : AppTheme.borderColor),
             borderRadius: BorderRadius.circular(3),
           ),
         );
