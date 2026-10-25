@@ -23,12 +23,12 @@ class ActivityListError extends ActivityListState {
 }
 
 class ActivityNotifier extends Notifier<ActivityListState> {
-  late final ActivityRepository _repository;
+  ActivityRepository get _repository => ref.read(activityRepositoryProvider);
   String? _filterDeviceId;
 
   @override
   ActivityListState build() {
-    _repository = ref.watch(activityRepositoryProvider);
+    ref.watch(activityRepositoryProvider);
     Future.microtask(() => loadLogs());
     return const ActivityListLoading();
   }

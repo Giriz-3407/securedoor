@@ -27,11 +27,11 @@ class Unauthenticated extends AuthState {
 }
 
 class AuthNotifier extends Notifier<AuthState> {
-  late final AuthRepository _authRepository;
+  AuthRepository get _authRepository => ref.read(authRepositoryProvider);
 
   @override
   AuthState build() {
-    _authRepository = ref.watch(authRepositoryProvider);
+    ref.watch(authRepositoryProvider);
     Future.microtask(() => checkSession());
     return const AuthInitial();
   }

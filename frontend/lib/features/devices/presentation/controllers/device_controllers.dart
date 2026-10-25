@@ -24,11 +24,11 @@ class DeviceListError extends DeviceListState {
 }
 
 class DeviceListNotifier extends Notifier<DeviceListState> {
-  late final DeviceRepository _deviceRepository;
+  DeviceRepository get _deviceRepository => ref.read(deviceRepositoryProvider);
 
   @override
   DeviceListState build() {
-    _deviceRepository = ref.watch(deviceRepositoryProvider);
+    ref.watch(deviceRepositoryProvider);
     final authState = ref.watch(authStateProvider);
 
     if (authState is Authenticated) {

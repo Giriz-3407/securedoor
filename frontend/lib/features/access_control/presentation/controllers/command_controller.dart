@@ -43,15 +43,16 @@ class CommandState {
 }
 
 class CommandController extends Notifier<CommandState> {
-  late final AccessControlRepository _repository;
-  late final BiometricService _biometricService;
+  AccessControlRepository get _repository =>
+      ref.read(accessControlRepositoryProvider);
+  BiometricService get _biometricService => ref.read(biometricServiceProvider);
 
   DateTime? _lastExecutionTime;
 
   @override
   CommandState build() {
-    _repository = ref.watch(accessControlRepositoryProvider);
-    _biometricService = ref.watch(biometricServiceProvider);
+    ref.watch(accessControlRepositoryProvider);
+    ref.watch(biometricServiceProvider);
     return const CommandState();
   }
 
