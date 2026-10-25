@@ -19,15 +19,14 @@
 // ============================================================
 // CONFIGURATION (Update these with your settings)
 // ============================================================
-const char* WIFI_SSID     = "YOUR_WIFI_SSID";     // 2.4 GHz Wi-Fi Name (or Mobile Hotspot)
-const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD"; // Wi-Fi Password
+const char* WIFI_SSID     = "Uma_4G";     // 2.4 GHz Wi-Fi Name (or Mobile Hotspot)
+const char* WIFI_PASSWORD = "Uma9137657256"; // Wi-Fi Password
 
-// For local testing on your desk: Use your laptop's local IP (e.g., 192.168.1.5) and port 3000
-// For production on Render: Use your Render domain (e.g., "your-api.onrender.com") and port 443 with SSL
-const char* WS_HOST       = "192.168.29.18";     // Your Laptop's Wi-Fi IP address
-const int   WS_PORT       = 5000;                // Port 5000 (avoids conflict with port 3000)
+// Cloud Render host - DO NOT INCLUDE "https://" or "wss://"
+const char* WS_HOST       = "securedoor-api.onrender.com";
+const int   WS_PORT       = 443;                // Port 443 for SSL / Cloud
 const char* WS_PATH       = "/ws/esp32";
-const bool  USE_SSL       = false;                // Set to true if connecting to wss:// on Render
+const bool  USE_SSL       = true;               // Set to true for Cloud Render
 
 const char* DEVICE_ID     = "esp32_front_door_01";
 const int   SERVO_PIN     = 18;                   // PWM Signal pin to Servo
@@ -42,6 +41,7 @@ Servo doorServo;
 int currentAngle = 0; // 0 = Closed (Rightwards), 90 = Open (Vertical Up)
 unsigned long lastHeartbeat = 0;
 const unsigned long HEARTBEAT_INTERVAL = 25000; // 25 seconds
+String cleanHostStr;
 
 // ============================================================
 // FORWARD DECLARATIONS
@@ -79,12 +79,24 @@ void setup() {
   // Connect to Wi-Fi
   connectWiFi();
 
+  // Sanitize host string automatically (strips https://, http://, wss://, trailing slashes)
+  cleanHostStr = String(WS_HOST);
+  cleanHostStr.replace("https://", "");
+  cleanHostStr.replace("http://", "");
+  cleanHostStr.replace("wss://", "");
+  cleanHostStr.replace("ws://", "");
+  while (cleanHostStr.endsWith("/")) {
+    cleanHostStr.remove(cleanHostStr.length() - 1);
+  }
+
   // Configure WebSocket Client
-  Serial.printf("[WS] Configuring connection to %s:%d%s\n", WS_HOST, WS_PORT, WS_PATH);
+  Serial.printf("[WS] Configuring connection to %s:%d%s (SSL: %s)\n", 
+                cleanHostStr.c_str(), WS_PORT, WS_PATH, USE_SSL ? "YES" : "NO");
+
   if (USE_SSL) {
-    webSocket.beginSSL(WS_HOST, WS_PORT, WS_PATH);
+    webSocket.beginSSL(cleanHostStr.c_str(), WS_PORT, WS_PATH);
   } else {
-    webSocket.begin(WS_HOST, WS_PORT, WS_PATH);
+    webSocket.begin(cleanHostStr.c_str(), WS_PORT, WS_PATH);
   }
 
   webSocket.onEvent(webSocketEvent);
@@ -121,7 +133,7 @@ void connectWiFi() {
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   int attempts = 0;
-  while (WiFi.status() != WL_CONNECTED && attempts < 25) {
+  while (WiFi.status() != WL_CONNECTED && attempts < 30) {
     delay(500);
     Serial.print(".");
     digitalWrite(STATUS_LED, !digitalRead(STATUS_LED)); // Toggle LED while connecting
