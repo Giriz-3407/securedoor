@@ -1,6 +1,7 @@
 import '../../../../core/errors/failures.dart';
 import '../../../../core/logging/app_logger.dart';
 import '../../../../core/utils/result.dart';
+import '../../domain/models/access_request.dart';
 import '../../domain/models/device.dart';
 import '../../domain/repositories/device_repository.dart';
 
@@ -113,5 +114,47 @@ class MockDeviceRepository implements DeviceRepository {
         'MockDeviceRepository: updated device $deviceId doorState=$doorState, latchState=$latchState',
       );
     }
+  }
+
+  final List<AccessRequest> _requests = [];
+
+  @override
+  Future<Result<Map<String, dynamic>>> requestDeviceAccess(String deviceId) async {
+    final newReq = AccessRequest(
+      id: 'req_${DateTime.now().millisecondsSinceEpoch}',
+      userId: 'usr_mock_student',
+      userEmail: 'student@example.com',
+      userName: 'Student User',
+      deviceId: deviceId,
+      deviceName: 'Door $deviceId',
+      status: 'pending',
+      requestedAt: DateTime.now(),
+    );
+    _requests.add(newReq);
+    return Result.success({'status': 'pending', 'message': 'Request submitted to Admin'});
+  }
+
+  @override
+  Future<Result<List<AccessRequest>>> getAccessRequests() async {
+    return Result.success(List.from(_requests));
+  }
+
+  @override
+  Future<Result<void>> reviewAccessRequest(String requestId, String action) async {
+    final idx = _requests.indexWhere((r) => r.id == requestId);
+    if (idx != -1) {
+      final req = _requests[idx];
+      _requests[idx] = AccessRequest(
+        id: req.id,
+        userId: req.userId,
+        userEmail: req.userEmail,
+        userName: req.userName,
+        deviceId: req.deviceId,
+        deviceName: req.deviceName,
+        status: action == 'accept' ? 'accepted' : 'rejected',
+        requestedAt: req.requestedAt,
+      );
+    }
+    return Result.success(null);
   }
 }

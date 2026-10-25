@@ -63,6 +63,14 @@ class HttpApiClient implements ApiClient {
       if (token != null && token.isNotEmpty) {
         headers['Authorization'] = 'Bearer $token';
       }
+      final userId = await secureStorage.read(AppConstants.keyUserId);
+      if (userId != null && userId.isNotEmpty) {
+        headers['X-User-Id'] = userId;
+      }
+      final userEmail = await secureStorage.read(AppConstants.keyUserEmail);
+      if (userEmail != null && userEmail.isNotEmpty) {
+        headers['X-User-Email'] = userEmail;
+      }
     }
 
     return headers;

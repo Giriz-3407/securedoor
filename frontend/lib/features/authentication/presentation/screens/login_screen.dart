@@ -15,8 +15,8 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'engineer@college.edu');
-  final _passwordController = TextEditingController(text: 'Access@IoE2026');
+  final _emailController = TextEditingController(text: 'admin@college.edu');
+  final _passwordController = TextEditingController(text: 'AdminPass2026');
   bool _obscurePassword = true;
 
   @override
@@ -250,23 +250,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   spacing: 8,
                                   runSpacing: 8,
                                   children: [
-                                    ActionChip(
-                                      backgroundColor: AppTheme.surfaceColor,
-                                      side: const BorderSide(
-                                        color: AppTheme.borderColor,
-                                      ),
-                                      label: const Text(
-                                        'Operator Profile',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: AppTheme.textPrimary,
-                                        ),
-                                      ),
-                                      onPressed: () => _fillCredentials(
-                                        'engineer@college.edu',
-                                        'Access@IoE2026',
-                                      ),
-                                    ),
                                     ActionChip(
                                       backgroundColor: AppTheme.surfaceColor,
                                       side: const BorderSide(

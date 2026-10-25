@@ -8,10 +8,94 @@ import '../../../activity/presentation/screens/activity_log_screen.dart';
 import '../../../authentication/presentation/controllers/auth_controller.dart';
 import '../controllers/device_controllers.dart';
 import '../../domain/models/device.dart';
+import 'admin_requests_screen.dart';
 import 'device_detail_screen.dart';
 
 class DeviceListScreen extends ConsumerWidget {
   const DeviceListScreen({super.key});
+
+  void _showRequestAccessDialog(BuildContext context, WidgetRef ref) {
+    final doorIdController = TextEditingController(text: 'esp32_front_door_01');
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.add_moderator_rounded, color: AppTheme.accentBlue),
+            SizedBox(width: 10),
+            Text('Request Door Access', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Enter the physical Door / Device ID you want permission to access. The Admin will review and approve your request.',
+              style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+            ),
+            const SizedBox(height: 18),
+            TextField(
+              controller: doorIdController,
+              decoration: const InputDecoration(
+                labelText: 'Target Door Device ID',
+                hintText: 'e.g. esp32_front_door_01',
+                prefixIcon: Icon(Icons.meeting_room_outlined),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final deviceId = doorIdController.text.trim();
+              if (deviceId.isEmpty) return;
+              Navigator.of(ctx).pop();
+
+              final repo = ref.read(deviceRepositoryProvider);
+              final result = await repo.requestDeviceAccess(deviceId);
+
+              result.when(
+                onSuccess: (data) {
+                  final msg = data['message'] as String? ?? 'Request submitted for Admin approval';
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: AppTheme.accentBlue,
+                      duration: const Duration(seconds: 4),
+                      content: Row(
+                        children: [
+                          const Icon(Icons.info_outline, color: Colors.white),
+                          const SizedBox(width: 10),
+                          Expanded(child: Text(msg)),
+                        ],
+                      ),
+                    ),
+                  );
+                  ref.read(deviceListProvider.notifier).refresh();
+                },
+                onFailure: (failure) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: AppTheme.statusOffline,
+                      content: Text(failure.message),
+                    ),
+                  );
+                },
+              );
+            },
+            child: const Text('Submit Request'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -20,6 +104,7 @@ class DeviceListScreen extends ConsumerWidget {
     final config = ref.watch(configProvider);
 
     final currentUser = (authState is Authenticated) ? authState.user : null;
+    final isAdmin = currentUser?.role.toLowerCase() == 'admin';
 
     return Scaffold(
       appBar: AppBar(
@@ -32,12 +117,26 @@ class DeviceListScreen extends ConsumerWidget {
             ),
             if (currentUser != null)
               Text(
-                '${currentUser.fullName} (${currentUser.role})',
-                style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                '${currentUser.fullName} (${currentUser.role.toUpperCase()})',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: isAdmin ? AppTheme.accentBlue : AppTheme.textSecondary,
+                  fontWeight: isAdmin ? FontWeight.bold : FontWeight.normal,
+                ),
               ),
           ],
         ),
         actions: [
+          if (isAdmin)
+            IconButton(
+              tooltip: 'Review Access Requests',
+              icon: const Icon(Icons.admin_panel_settings_rounded, color: AppTheme.accentBlue),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const AdminRequestsScreen()),
+                );
+              },
+            ),
           IconButton(
             tooltip: 'Activity Audit Log',
             icon: const Icon(Icons.history_rounded),
@@ -84,6 +183,12 @@ class DeviceListScreen extends ConsumerWidget {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppTheme.accentBlue,
+        icon: const Icon(Icons.add_moderator_rounded, color: Colors.white),
+        label: const Text('Request Door Access', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        onPressed: () => _showRequestAccessDialog(context, ref),
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -126,8 +231,33 @@ class DeviceListScreen extends ConsumerWidget {
                     onRefresh: () =>
                         ref.read(deviceListProvider.notifier).refresh(),
                     child: devices.isEmpty
-                        ? const Center(
-                            child: Text('No devices registered to your account.'),
+                        ? Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24.0),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.lock_person_outlined, size: 64, color: AppTheme.textSecondary),
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    'No Doors Assigned Yet',
+                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    'You must request access from the Admin to unlock perimeters.\nTap the button below to submit a request for a door.',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  ElevatedButton.icon(
+                                    icon: const Icon(Icons.add_moderator_rounded),
+                                    label: const Text('Request Door Access'),
+                                    onPressed: () => _showRequestAccessDialog(context, ref),
+                                  ),
+                                ],
+                              ),
+                            ),
                           )
                         : GridView.builder(
                             padding: const EdgeInsets.all(16),
@@ -198,53 +328,49 @@ class _DeviceGridTile extends StatelessWidget {
         ),
       ),
       child: InkWell(
-        onTap: onTap,
         borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Top row: Icon & Status indicator dot
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: statusColor.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
-                      statusIcon,
-                      color: statusColor,
-                      size: 22,
-                    ),
+                    child: Icon(statusIcon, color: statusColor, size: 20),
                   ),
                   Container(
-                    width: 8,
-                    height: 8,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: isOnline
-                          ? AppTheme.statusOnline
-                          : AppTheme.statusOffline,
-                      shape: BoxShape.circle,
-                      boxShadow: isOnline
-                          ? [
-                              BoxShadow(
-                                color: AppTheme.statusOnline
-                                    .withValues(alpha: 0.35),
-                                blurRadius: 4,
-                              ),
-                            ]
-                          : [],
+                          ? AppTheme.statusOnline.withValues(alpha: 0.15)
+                          : AppTheme.statusOffline.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      isOnline ? 'ONLINE' : 'OFFLINE',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        color: isOnline
+                            ? AppTheme.statusOnline
+                            : AppTheme.statusOffline,
+                      ),
                     ),
                   ),
                 ],
               ),
-
-              // Bottom details: Device Name & Simple Status
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -253,17 +379,16 @@ class _DeviceGridTile extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 15,
                       fontWeight: FontWeight.bold,
+                      fontSize: 14,
                       color: AppTheme.textPrimary,
-                      letterSpacing: 0.3,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     statusText,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: statusColor,
                     ),
