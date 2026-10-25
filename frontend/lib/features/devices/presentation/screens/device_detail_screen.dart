@@ -228,18 +228,6 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
                                 ],
                               ),
                             ),
-                            ActionChip(
-                              avatar: const Icon(Icons.qr_code_2_rounded, size: 16, color: AppTheme.accentBlue),
-                              label: const Text('Door QR', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                              backgroundColor: AppTheme.surfaceColor,
-                              side: const BorderSide(color: AppTheme.borderColor),
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => DoorQrDialog(device: device),
-                                );
-                              },
-                            ),
                           ],
                         ),
                       ],

@@ -465,6 +465,51 @@ router.post('/auth/login', async (req, res) => {
   }
 });
 
+// 3b. Verify Session / Current User: GET /auth/me
+router.get('/auth/me', async (req, res) => {
+  const userId = req.headers['x-user-id'];
+  const userEmail = (req.headers['x-user-email'] || '').toLowerCase();
+
+  try {
+    if (isMongoConnected) {
+      let user = null;
+      if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+        user = await User.findById(userId);
+      }
+      if (!user && userEmail) {
+        user = await User.findOne({ email: userEmail });
+      }
+
+      if (user) {
+        return res.json({
+          user: {
+            id: user._id.toString(),
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          },
+        });
+      }
+    }
+
+    if (userEmail) {
+      const role = userEmail === 'admin@college.edu' ? 'admin' : 'user';
+      return res.json({
+        user: {
+          id: userId || 'usr_01',
+          email: userEmail,
+          name: userEmail.split('@')[0],
+          role,
+        },
+      });
+    }
+
+    return res.status(401).json({ error: 'Session expired or invalid user' });
+  } catch (err) {
+    return res.status(500).json({ error: 'Failed to verify session', details: err.message });
+  }
+});
+
 // 4. Request Access to a Device: POST /devices/request-access (or /devices/claim)
 // When a regular user tries to access a door, an access request goes to the Admin
 router.post(['/devices/request-access', '/devices/claim'], async (req, res) => {

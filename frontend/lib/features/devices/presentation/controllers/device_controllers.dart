@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/providers/app_providers.dart';
+import '../../../authentication/presentation/controllers/auth_controller.dart';
 import '../../domain/models/device.dart';
 import '../../domain/repositories/device_repository.dart';
 
@@ -28,8 +29,14 @@ class DeviceListNotifier extends Notifier<DeviceListState> {
   @override
   DeviceListState build() {
     _deviceRepository = ref.watch(deviceRepositoryProvider);
-    Future.microtask(() => loadDevices());
-    return const DeviceListLoading();
+    final authState = ref.watch(authStateProvider);
+
+    if (authState is Authenticated) {
+      Future.microtask(() => loadDevices());
+      return const DeviceListLoading();
+    } else {
+      return const DeviceListLoaded([]);
+    }
   }
 
   Future<void> loadDevices() async {

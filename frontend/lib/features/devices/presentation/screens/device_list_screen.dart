@@ -164,6 +164,10 @@ class _DeviceListScreenState extends ConsumerState<DeviceListScreen> {
 
     final currentUser = (authState is Authenticated) ? authState.user : null;
     final isAdmin = currentUser?.role.toLowerCase() == 'admin';
+    final hasDoors = switch (deviceState) {
+      DeviceListLoaded(devices: final d) => d.isNotEmpty,
+      _ => false,
+    };
 
     return Scaffold(
       appBar: AppBar(
@@ -242,12 +246,15 @@ class _DeviceListScreenState extends ConsumerState<DeviceListScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppTheme.accentBlue,
-        icon: const Icon(Icons.add_moderator_rounded, color: Colors.white),
-        label: const Text('Request Door Access', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        onPressed: () => _showRequestAccessDialog(),
-      ),
+      floatingActionButton: (!isAdmin && hasDoors)
+          ? FloatingActionButton.extended(
+              backgroundColor: AppTheme.accentBlue,
+              icon: const Icon(Icons.add_moderator_rounded, color: Colors.white),
+              label: const Text('Request Door Access',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              onPressed: () => _showRequestAccessDialog(),
+            )
+          : null,
       body: SafeArea(
         child: Column(
           children: [
@@ -298,22 +305,28 @@ class _DeviceListScreenState extends ConsumerState<DeviceListScreen> {
                                 children: [
                                   const Icon(Icons.lock_person_outlined, size: 64, color: AppTheme.textSecondary),
                                   const SizedBox(height: 16),
-                                  const Text(
-                                    'No Doors Assigned Yet',
-                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                                  Text(
+                                    isAdmin
+                                        ? 'No Doors Registered'
+                                        : 'No Doors Assigned Yet',
+                                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
                                   ),
                                   const SizedBox(height: 8),
-                                  const Text(
-                                    'You must request access from the Admin to unlock perimeters.\nScan a door QR code or tap below to submit a request.',
+                                  Text(
+                                    isAdmin
+                                        ? 'No lock hardware is currently registered in the database.\nPower on the ESP32 hardware device to register.'
+                                        : 'You must request access from the Admin to unlock perimeters.\nScan a door QR code or tap below to submit a request.',
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+                                    style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
                                   ),
-                                  const SizedBox(height: 24),
-                                  ElevatedButton.icon(
-                                    icon: const Icon(Icons.add_moderator_rounded),
-                                    label: const Text('Request Door Access'),
-                                    onPressed: () => _showRequestAccessDialog(),
-                                  ),
+                                  if (!isAdmin) ...[
+                                    const SizedBox(height: 24),
+                                    ElevatedButton.icon(
+                                      icon: const Icon(Icons.add_moderator_rounded),
+                                      label: const Text('Request Door Access'),
+                                      onPressed: () => _showRequestAccessDialog(),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),

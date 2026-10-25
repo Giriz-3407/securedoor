@@ -43,6 +43,8 @@ class AuthRepositoryImpl implements AuthRepository {
       final user = User.fromJson(userData);
       await storage.write(AppConstants.keyUserId, user.id);
       await storage.write(AppConstants.keyUserEmail, user.email);
+      await storage.write(AppConstants.keyUserName, user.fullName);
+      await storage.write(AppConstants.keyUserRole, user.role);
 
       AppLogger.info('User successfully authenticated via API');
       return Result.success(user);
@@ -58,21 +60,45 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Result<User?>> getCurrentUser() async {
     try {
       final token = await storage.read(AppConstants.keyAccessToken);
-      if (token == null) {
+      if (token == null || token.isEmpty) {
         return Result.success(null);
       }
 
-      final response = await apiClient.get('/auth/me');
-      final userData = response['user'] as Map<String, dynamic>?;
-      if (userData == null) {
-        return Result.success(null);
+      // Check if we have cached user info locally
+      final userId = await storage.read(AppConstants.keyUserId);
+      final userEmail = await storage.read(AppConstants.keyUserEmail);
+      final userName = await storage.read(AppConstants.keyUserName);
+      final userRole = await storage.read(AppConstants.keyUserRole);
+
+      User? localUser;
+      if (userId != null && userEmail != null) {
+        localUser = User(
+          id: userId,
+          email: userEmail,
+          fullName: userName ?? userEmail.split('@')[0],
+          role: userRole ?? (userEmail.toLowerCase() == 'admin@college.edu' ? 'admin' : 'user'),
+          createdAt: DateTime.now(),
+        );
       }
-      return Result.success(User.fromJson(userData));
-    } on AuthFailure {
-      await storage.clearAll();
-      return Result.success(null);
-    } on Failure catch (f) {
-      return Result.failure(f);
+
+      // Verify or refresh session from backend if reachable
+      try {
+        final response = await apiClient.get('/auth/me');
+        final userData = response['user'] as Map<String, dynamic>?;
+        if (userData != null) {
+          final serverUser = User.fromJson(userData);
+          await storage.write(AppConstants.keyUserId, serverUser.id);
+          await storage.write(AppConstants.keyUserEmail, serverUser.email);
+          await storage.write(AppConstants.keyUserName, serverUser.fullName);
+          await storage.write(AppConstants.keyUserRole, serverUser.role);
+          return Result.success(serverUser);
+        }
+      } catch (e) {
+        AppLogger.warn('Backend /auth/me check returned: $e, maintaining local session');
+      }
+
+      // If backend verification had an issue or is loading, remember the local user
+      return Result.success(localUser);
     } catch (e, st) {
       AppLogger.error('Failed to get current user', e, st);
       return Result.failure(UnexpectedFailure(e.toString()));
