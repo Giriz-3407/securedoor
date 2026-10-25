@@ -40,7 +40,7 @@
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="https" android:host="securedoor.app" android:pathPrefix="/door"/>
+                <data android:scheme="https" android:host="securedoor-api.onrender.com" android:pathPrefix="/door"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

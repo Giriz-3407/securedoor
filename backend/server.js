@@ -239,6 +239,119 @@ router.get('/', (req, res) => {
   });
 });
 
+// 1b. Door QR Deep Link Landing Page: GET /door
+// When a phone camera or Google Lens scans the QR code, this web page auto-opens the mobile app
+router.get('/door', (req, res) => {
+  const doorId = req.query.id || req.query.deviceId || '';
+  const appSchemeUrl = `securedoor://door?id=${encodeURIComponent(doorId)}`;
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SecureDoor - Access Door</title>
+  <meta http-equiv="refresh" content="0; url=${appSchemeUrl}">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 24px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 20px;
+      padding: 36px 24px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    .icon {
+      width: 64px;
+      height: 64px;
+      background: rgba(37, 99, 235, 0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+    .icon svg {
+      width: 32px;
+      height: 32px;
+      fill: #38bdf8;
+    }
+    h1 {
+      font-size: 22px;
+      margin: 0 0 8px;
+    }
+    .door-id {
+      display: inline-block;
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #38bdf8;
+      font-family: monospace;
+      font-size: 14px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    p {
+      color: #94a3b8;
+      font-size: 14px;
+      margin: 0 0 24px;
+      line-height: 1.5;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      background: #2563eb;
+      color: white;
+      text-decoration: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 16px;
+      box-sizing: border-box;
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background: #1d4ed8;
+    }
+  </style>
+  <script>
+    window.onload = function() {
+      window.location.href = "${appSchemeUrl}";
+    };
+  </script>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">
+      <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+    </div>
+    <h1>Secure Door Access</h1>
+    <div class="door-id">${doorId || 'Door Scanner'}</div>
+    <p>Opening door access in the <strong>SecureDoor</strong> mobile app...</p>
+    <a href="${appSchemeUrl}" class="btn">Open in SecureDoor App</a>
+  </div>
+</body>
+</html>`;
+
+  res.setHeader('Content-Type', 'text/html');
+  res.send(html);
+});
+
 // 2. User Registration: POST /auth/register
 router.post('/auth/register', async (req, res) => {
   const { name, email, password } = req.body;
