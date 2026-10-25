@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/providers/app_providers.dart';
+import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../shared/widgets/door_qr_dialog.dart';
 import '../../../../shared/widgets/mock_banner.dart';
 import '../../../activity/presentation/screens/activity_log_screen.dart';
 import '../../../authentication/presentation/controllers/auth_controller.dart';
@@ -11,11 +14,65 @@ import '../../domain/models/device.dart';
 import 'admin_requests_screen.dart';
 import 'device_detail_screen.dart';
 
-class DeviceListScreen extends ConsumerWidget {
+class DeviceListScreen extends ConsumerStatefulWidget {
   const DeviceListScreen({super.key});
 
-  void _showRequestAccessDialog(BuildContext context, WidgetRef ref) {
-    final doorIdController = TextEditingController(text: 'esp32_front_door_01');
+  @override
+  ConsumerState<DeviceListScreen> createState() => _DeviceListScreenState();
+}
+
+class _DeviceListScreenState extends ConsumerState<DeviceListScreen> {
+  StreamSubscription<String>? _deepLinkSub;
+
+  @override
+  void initState() {
+    super.initState();
+    // Listen for incoming Door QR code scans / deep links
+    _deepLinkSub = DeepLinkService().onDoorScanned.listen((scannedDoorId) {
+      _handleScannedDoor(scannedDoorId);
+    });
+
+    // Check if app was cold-launched from a QR code scan
+    final pending = DeepLinkService().pendingDoorId;
+    if (pending != null) {
+      DeepLinkService().pendingDoorId = null;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _handleScannedDoor(pending);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _deepLinkSub?.cancel();
+    super.dispose();
+  }
+
+  void _handleScannedDoor(String doorId) {
+    final deviceState = ref.read(deviceListProvider);
+    if (deviceState is DeviceListLoaded) {
+      final match = deviceState.devices.where((d) => d.id == doorId).firstOrNull;
+      if (match != null) {
+        // User already has approved access! Open the door controls directly!
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: AppTheme.statusOnline,
+            content: Text('Scanned QR for ${match.name}. Opening controls...'),
+          ),
+        );
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => DeviceDetailScreen(initialDevice: match)),
+        );
+        return;
+      }
+    }
+
+    // User is not authorized for this door yet -> Prompt them to request access
+    _showRequestAccessDialog(initialDeviceId: doorId);
+  }
+
+  void _showRequestAccessDialog({String? initialDeviceId}) {
+    final doorIdController = TextEditingController(text: initialDeviceId ?? 'esp32_front_door_01');
 
     showDialog(
       context: context,
@@ -33,9 +90,11 @@ class DeviceListScreen extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Enter the physical Door / Device ID you want permission to access. The Admin will review and approve your request.',
-              style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+            Text(
+              initialDeviceId != null
+                  ? 'You scanned QR code for door "$initialDeviceId". Submit a request to the Admin to gain access.'
+                  : 'Enter the Door Device ID you want permission to access. The Admin will review and approve your request.',
+              style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary),
             ),
             const SizedBox(height: 18),
             TextField(
@@ -98,7 +157,7 @@ class DeviceListScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final deviceState = ref.watch(deviceListProvider);
     final authState = ref.watch(authStateProvider);
     final config = ref.watch(configProvider);
@@ -187,7 +246,7 @@ class DeviceListScreen extends ConsumerWidget {
         backgroundColor: AppTheme.accentBlue,
         icon: const Icon(Icons.add_moderator_rounded, color: Colors.white),
         label: const Text('Request Door Access', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        onPressed: () => _showRequestAccessDialog(context, ref),
+        onPressed: () => _showRequestAccessDialog(),
       ),
       body: SafeArea(
         child: Column(
@@ -245,7 +304,7 @@ class DeviceListScreen extends ConsumerWidget {
                                   ),
                                   const SizedBox(height: 8),
                                   const Text(
-                                    'You must request access from the Admin to unlock perimeters.\nTap the button below to submit a request for a door.',
+                                    'You must request access from the Admin to unlock perimeters.\nScan a door QR code or tap below to submit a request.',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
                                   ),
@@ -253,7 +312,7 @@ class DeviceListScreen extends ConsumerWidget {
                                   ElevatedButton.icon(
                                     icon: const Icon(Icons.add_moderator_rounded),
                                     label: const Text('Request Door Access'),
-                                    onPressed: () => _showRequestAccessDialog(context, ref),
+                                    onPressed: () => _showRequestAccessDialog(),
                                   ),
                                 ],
                               ),
@@ -266,13 +325,20 @@ class DeviceListScreen extends ConsumerWidget {
                               crossAxisCount: 2,
                               crossAxisSpacing: 14,
                               mainAxisSpacing: 14,
-                              childAspectRatio: 1.1,
+                              childAspectRatio: 1.05,
                             ),
                             itemCount: devices.length,
                             itemBuilder: (context, index) {
                               final device = devices[index];
                               return _DeviceGridTile(
                                 device: device,
+                                isAdmin: isAdmin,
+                                onQrTap: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (_) => DoorQrDialog(device: device),
+                                  );
+                                },
                                 onTap: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
@@ -297,9 +363,16 @@ class DeviceListScreen extends ConsumerWidget {
 
 class _DeviceGridTile extends StatelessWidget {
   final Device device;
+  final bool isAdmin;
   final VoidCallback onTap;
+  final VoidCallback? onQrTap;
 
-  const _DeviceGridTile({required this.device, required this.onTap});
+  const _DeviceGridTile({
+    required this.device,
+    required this.onTap,
+    this.isAdmin = false,
+    this.onQrTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -331,7 +404,7 @@ class _DeviceGridTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -340,34 +413,47 @@ class _DeviceGridTile extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
                       color: statusColor.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(statusIcon, color: statusColor, size: 20),
+                    child: Icon(statusIcon, color: statusColor, size: 18),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isOnline
-                          ? AppTheme.statusOnline.withValues(alpha: 0.15)
-                          : AppTheme.statusOffline.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      isOnline ? 'ONLINE' : 'OFFLINE',
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                        color: isOnline
-                            ? AppTheme.statusOnline
-                            : AppTheme.statusOffline,
+                  Row(
+                    children: [
+                      if (isAdmin)
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          icon: const Icon(Icons.qr_code_2_rounded, size: 20, color: AppTheme.accentBlue),
+                          tooltip: 'Generate Door QR',
+                          onPressed: onQrTap,
+                        ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isOnline
+                              ? AppTheme.statusOnline.withValues(alpha: 0.15)
+                              : AppTheme.statusOffline.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          isOnline ? 'ONLINE' : 'OFFLINE',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                            color: isOnline
+                                ? AppTheme.statusOnline
+                                : AppTheme.statusOffline,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
@@ -380,15 +466,15 @@ class _DeviceGridTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                      fontSize: 13,
                       color: AppTheme.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   Text(
                     statusText,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: statusColor,
                     ),

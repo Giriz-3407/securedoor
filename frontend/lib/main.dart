@@ -5,10 +5,13 @@ import 'core/config/app_config.dart';
 import 'core/constants/app_constants.dart';
 import 'core/logging/app_logger.dart';
 import 'core/providers/app_providers.dart';
+import 'core/services/deep_link_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/authentication/presentation/controllers/auth_controller.dart';
 import 'features/authentication/presentation/screens/login_screen.dart';
 import 'features/devices/presentation/screens/device_list_screen.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +22,9 @@ void main() async {
   AppLogger.info(
     'Starting ${AppConstants.appName} in ${config.environment.name} mode (mock=${config.isMockMode})',
   );
+
+  // Initialize Deep Linking system
+  DeepLinkService().initialize(navigatorKey);
 
   runApp(
     ProviderScope(
@@ -36,6 +42,7 @@ class SecureDoorAccessApp extends ConsumerWidget {
     final authState = ref.watch(authStateProvider);
 
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
@@ -59,20 +66,11 @@ class _AppSplashScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.shield_outlined, size: 56, color: AppTheme.accentBlue),
-            SizedBox(height: 24),
-            CircularProgressIndicator(
-              strokeWidth: 2.5,
-              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.accentBlue),
-            ),
+            CircularProgressIndicator(),
             SizedBox(height: 16),
             Text(
-              'Verifying Security Context...',
-              style: TextStyle(
-                color: AppTheme.textSecondary,
-                fontSize: 13,
-                letterSpacing: 0.3,
-              ),
+              'Initializing Secure Hardware Session...',
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
             ),
           ],
         ),

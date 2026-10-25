@@ -6,6 +6,7 @@ import '../../../../core/providers/app_providers.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../shared/widgets/command_confirmation_sheet.dart';
 import '../../../../shared/widgets/command_progress_dialog.dart';
+import '../../../../shared/widgets/door_qr_dialog.dart';
 import '../../../../shared/widgets/mock_banner.dart';
 import '../../../access_control/domain/models/door_command.dart';
 import '../../../access_control/presentation/controllers/command_controller.dart';
@@ -125,6 +126,16 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
         title: Text(device.name),
         actions: [
           IconButton(
+            tooltip: 'Generate Door QR Code',
+            icon: const Icon(Icons.qr_code_2_rounded, color: AppTheme.accentBlue),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => DoorQrDialog(device: device),
+              );
+            },
+          ),
+          IconButton(
             tooltip: 'View Device History',
             icon: const Icon(Icons.history_rounded),
             onPressed: () {
@@ -166,52 +177,70 @@ class _DeviceDetailScreenState extends ConsumerState<DeviceDetailScreen> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color:
-                                (isOnline
-                                        ? AppTheme.statusOnline
-                                        : AppTheme.statusOffline)
-                                    .withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color:
-                                  (isOnline
+                        Wrap(
+                          spacing: 8,
+                          alignment: WrapAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color:
+                                    (isOnline
+                                            ? AppTheme.statusOnline
+                                            : AppTheme.statusOffline)
+                                        .withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color:
+                                      (isOnline
+                                              ? AppTheme.statusOnline
+                                              : AppTheme.statusOffline)
+                                          .withValues(alpha: 0.35),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 7,
+                                    height: 7,
+                                    decoration: BoxDecoration(
+                                      color: isOnline
                                           ? AppTheme.statusOnline
-                                          : AppTheme.statusOffline)
-                                      .withValues(alpha: 0.35),
+                                          : AppTheme.statusOffline,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    isOnline ? 'Device Online' : 'Device Offline',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: isOnline
+                                          ? AppTheme.statusOnline
+                                          : AppTheme.statusOffline,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 7,
-                                height: 7,
-                                decoration: BoxDecoration(
-                                  color: isOnline
-                                      ? AppTheme.statusOnline
-                                      : AppTheme.statusOffline,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                isOnline ? 'Device Online' : 'Device Offline',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: isOnline
-                                      ? AppTheme.statusOnline
-                                      : AppTheme.statusOffline,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ActionChip(
+                              avatar: const Icon(Icons.qr_code_2_rounded, size: 16, color: AppTheme.accentBlue),
+                              label: const Text('Door QR', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                              backgroundColor: AppTheme.surfaceColor,
+                              side: const BorderSide(color: AppTheme.borderColor),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => DoorQrDialog(device: device),
+                                );
+                              },
+                            ),
+                          ],
                         ),
                       ],
                     ),
