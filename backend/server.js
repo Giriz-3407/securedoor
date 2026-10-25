@@ -936,14 +936,40 @@ router.get('/activity-logs', async (req, res) => {
   const { deviceId } = req.query;
 
   try {
+    let rawLogs = [];
     if (isMongoConnected) {
       const filter = deviceId ? { deviceId } : {};
-      const logs = await ActivityLog.find(filter).sort({ timestamp: -1 }).limit(50);
-      return res.json({ logs });
+      rawLogs = await ActivityLog.find(filter).sort({ timestamp: -1 }).limit(50).lean();
+    } else {
+      rawLogs = deviceId ? inMemoryLogs.filter((l) => l.deviceId === deviceId) : inMemoryLogs;
     }
 
-    const filtered = deviceId ? inMemoryLogs.filter((l) => l.deviceId === deviceId) : inMemoryLogs;
-    res.json({ logs: filtered });
+    // Enhance logs with device name and standard uppercase fields
+    const devices = isMongoConnected ? await Device.find().lean() : inMemoryDevices;
+    const deviceNameMap = new Map(devices.map((d) => [d.id, d.name]));
+
+    const formattedLogs = rawLogs.map((log) => {
+      const op = (log.operation || log.action || 'refresh').toUpperCase();
+      const st = (log.status || 'success').toUpperCase();
+      const devName = log.deviceName || deviceNameMap.get(log.deviceId) || 'Main Entrance Door';
+      const auth = log.authMethod || (log.authenticationMethod === 'biometric_os' ? 'Biometric Authentication' : log.authenticationMethod) || 'Biometric Authentication';
+
+      return {
+        id: log.id || String(log._id),
+        deviceId: log.deviceId,
+        deviceName: devName,
+        operation: op,
+        action: log.action || op.toLowerCase(),
+        status: st,
+        authMethod: auth,
+        triggeredBy: log.triggeredBy || 'Authorized Operator',
+        timestamp: (log.timestamp instanceof Date ? log.timestamp : new Date(log.timestamp)).toISOString(),
+        requestId: log.requestId || '',
+        failureReason: log.failureReason || null,
+      };
+    });
+
+    return res.json({ logs: formattedLogs });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch logs', details: err.message });
   }

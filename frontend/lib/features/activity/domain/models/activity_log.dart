@@ -8,11 +8,11 @@ class ActivityLog {
   final String deviceName;
   final OperationType operation;
   final OperationStatus status;
-  final String
-  authMethod; // 'Biometric (Fingerprint/Face)', 'Password fallback', etc.
+  final String authMethod; // 'Biometric (Fingerprint/Face)', 'Password fallback', etc.
   final DateTime timestamp;
   final String requestId;
   final String? failureReason;
+  final String? triggeredBy;
 
   const ActivityLog({
     required this.id,
@@ -24,35 +24,50 @@ class ActivityLog {
     required this.timestamp,
     required this.requestId,
     this.failureReason,
+    this.triggeredBy,
   });
 
   bool get isSuccess => status == OperationStatus.success;
 
   factory ActivityLog.fromJson(Map<String, dynamic> json) {
+    final rawStatus = (json['status'] ?? 'failed').toString().toUpperCase();
+    final rawOp = (json['operation'] ?? json['action'] ?? 'refresh').toString().toUpperCase();
+
+    final status = switch (rawStatus) {
+      'SUCCESS' || 'OK' || 'TRUE' => OperationStatus.success,
+      'UNAUTHORIZED' || 'FORBIDDEN' => OperationStatus.unauthorized,
+      'TIMED_OUT' || 'TIMEOUT' => OperationStatus.timedOut,
+      'OFFLINE' => OperationStatus.offline,
+      _ => OperationStatus.failed,
+    };
+
+    final operation = switch (rawOp) {
+      'OPEN' || 'UNLOCK' || 'UNLOCKED' => OperationType.open,
+      'CLOSE' || 'LOCK' || 'LOCKED' => OperationType.close,
+      'LOGIN' => OperationType.login,
+      'LOGOUT' => OperationType.logout,
+      _ => OperationType.refresh,
+    };
+
+    final authMethod = json['authMethod'] ??
+        (json['authenticationMethod'] == 'biometric_os'
+            ? 'Biometric Authentication'
+            : json['authenticationMethod']) ??
+        'Biometric Authentication';
+
     return ActivityLog(
-      id: json['id'] as String,
-      deviceId: json['deviceId'] as String? ?? 'unknown',
-      deviceName: json['deviceName'] as String? ?? 'Door Access Device',
-      operation: switch (json['operation']) {
-        'OPEN' => OperationType.open,
-        'CLOSE' => OperationType.close,
-        'LOGIN' => OperationType.login,
-        'LOGOUT' => OperationType.logout,
-        _ => OperationType.refresh,
-      },
-      status: switch (json['status']) {
-        'SUCCESS' => OperationStatus.success,
-        'UNAUTHORIZED' => OperationStatus.unauthorized,
-        'TIMED_OUT' => OperationStatus.timedOut,
-        'OFFLINE' => OperationStatus.offline,
-        _ => OperationStatus.failed,
-      },
-      authMethod: json['authMethod'] as String? ?? 'Biometric authentication',
+      id: (json['id'] ?? json['_id'] ?? '').toString(),
+      deviceId: json['deviceId'] as String? ?? 'esp32_front_door_01',
+      deviceName: json['deviceName'] as String? ?? 'Main Entrance Door',
+      operation: operation,
+      status: status,
+      authMethod: authMethod.toString(),
       timestamp: json['timestamp'] != null
           ? DateTime.parse(json['timestamp'] as String)
           : DateTime.now(),
       requestId: json['requestId'] as String? ?? '',
       failureReason: json['failureReason'] as String?,
+      triggeredBy: json['triggeredBy'] as String?,
     );
   }
 
@@ -66,5 +81,6 @@ class ActivityLog {
     'timestamp': timestamp.toIso8601String(),
     'requestId': requestId,
     'failureReason': failureReason,
+    'triggeredBy': triggeredBy,
   };
 }

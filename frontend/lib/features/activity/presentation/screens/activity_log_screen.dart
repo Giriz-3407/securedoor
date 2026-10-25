@@ -253,6 +253,22 @@ class _ActivityLogCard extends StatelessWidget {
                 ),
               ),
             ],
+            if (log.triggeredBy != null && log.triggeredBy!.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  const Icon(Icons.person_outline_rounded, size: 13, color: AppTheme.textSecondary),
+                  const SizedBox(width: 4),
+                  Text(
+                    'User: ${log.triggeredBy}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
             const SizedBox(height: 6),
             Text(
               'Req: ${log.requestId.length > 12 ? log.requestId.substring(0, 12) : log.requestId}...',
