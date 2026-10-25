@@ -89,35 +89,34 @@ For the complete security model and threat analysis, see [SECURITY.md](file:///c
 
 ---
 
-## Folder Structure
+## Monorepo Project Structure
+
+```text
+securedoor/
+├── frontend/             # Flutter mobile client application
+│   ├── lib/              # Clean Architecture (Domain, Data, Presentation)
+│   ├── android/          # Android native platform code & permissions
+│   ├── ios/              # iOS platform configuration
+│   └── pubspec.yaml      # Flutter dependencies & assets
+│
+├── backend/              # Node.js + Express + WebSockets + MongoDB Atlas server
+│   ├── server.js         # REST API & real-time hardware WebSocket broker
+│   ├── package.json      # Node.js dependencies
+│   └── .env.example      # Environment variables template
+│
+├── firmware/             # ESP32 Embedded Microcontroller Firmware
+│   └── esp32_door_lock/  # Arduino IDE project
+│       └── esp32_door_lock.ino
+│
+├── ARCHITECTURE.md       # Complete system architecture specification
+├── SECURITY.md           # Cryptographic & physical threat model
+└── README.md             # Project documentation
+```
+
+### Mobile App (`frontend/lib/`) Architecture
 
 ```
-lib/
-├── core/
-│   ├── config/              # AppConfig & environment flags
-│   ├── constants/           # Storage keys, app timing constants
-│   ├── errors/              # Domain Failure types (Network, Auth, Biometric, etc.)
-│   ├── logging/             # Centralized safe logger (automatic token redaction)
-│   ├── networking/          # ApiClient & HttpApiClient abstractions
-│   ├── providers/           # Riverpod dependency injection registry
-│   ├── security/            # BiometricService & LocalAuthBiometricService adapter
-│   ├── storage/             # SecureStorageService & FlutterSecureStorage implementation
-│   ├── theme/               # Modern engineering dark theme
-│   └── utils/               # Functional Result<T> error wrapper
-│
-├── features/
-│   ├── authentication/
-│   │   ├── domain/          # User model, LoginCredentials, AuthRepository
-│   │   ├── data/            # AuthRepositoryImpl & MockAuthRepository
-│   │   └── presentation/    # AuthNotifier, LoginScreen
-│   │
-│   ├── devices/
-│   │   ├── domain/          # Device, DoorState, LatchState, DeviceRepository
-│   │   ├── data/            # DeviceRepositoryImpl & MockDeviceRepository
-│   │   └── presentation/    # DeviceListNotifier, DeviceListScreen, DeviceDetailScreen
-│   │
-│   ├── access_control/
-│   │   ├── domain/          # DoorCommandPayload, ExecutionStage, AccessControlRepository
+frontend/lib/
 │   │   ├── data/            # AccessControlRepositoryImpl & MockAccessControlRepository
 │   │   └── presentation/    # CommandController, CommandConfirmationSheet, ProgressDialog
 │   │
