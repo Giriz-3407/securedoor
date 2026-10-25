@@ -164,6 +164,10 @@ async function connectDatabase() {
       await defaultDevice.save();
       console.log('📦 [MONGODB] Assigned device "esp32_front_door_01" owner to Admin');
     }
+
+    // Reset all device connectivity to offline on boot until hardware connects via WebSocket
+    await Device.updateMany({}, { connectivity: 'offline' });
+    console.log('🔄 [MONGODB] Initialized device connectivity states to offline');
   } catch (err) {
     console.error('❌ [MONGODB ERROR] Connection failed:', err.message);
     console.warn('   Falling back to IN-MEMORY mode.');
@@ -195,11 +199,14 @@ function formatDeviceForApp(dev, userId = null, userRole = null) {
     }
   }
 
+  // True real-time hardware status: Is the ESP32 actively connected via WebSocket right now?
+  const isLiveConnected = connectedHardware.has(dev.id);
+
   return {
     id: dev.id,
     name: dev.name,
     description: dev.description,
-    connectivity: dev.connectivity,
+    connectivity: isLiveConnected ? 'online' : 'offline',
     doorState: dev.doorState,
     latchState: dev.latchState,
     lastSeen: (dev.lastSeen instanceof Date ? dev.lastSeen : new Date(dev.lastSeen)).toISOString(),
