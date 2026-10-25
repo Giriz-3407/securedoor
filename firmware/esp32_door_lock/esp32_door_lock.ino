@@ -145,6 +145,19 @@ void connectWiFi() {
     Serial.printf("[WIFI] IP Address: %s\n", WiFi.localIP().toString().c_str());
     Serial.printf("[WIFI] Signal Strength (RSSI): %d dBm\n", WiFi.RSSI());
     digitalWrite(STATUS_LED, HIGH);
+
+    // Synchronize NTP clock (Required for SSL/TLS certificates on Render & Cloudflare)
+    Serial.print("[TIME] Synchronizing NTP time for SSL ");
+    configTime(0, 0, "pool.ntp.org", "time.google.com");
+    time_t now = time(nullptr);
+    int retries = 0;
+    while (now < 1700000000 && retries < 20) {
+      delay(500);
+      Serial.print(".");
+      now = time(nullptr);
+      retries++;
+    }
+    Serial.println("\n[TIME] Clock synchronized successfully!");
   } else {
     Serial.println("\n[WIFI ERROR] Failed to connect. Check SSID/Password.");
   }
