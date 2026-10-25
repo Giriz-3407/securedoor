@@ -184,15 +184,18 @@ const connectedHardware = new Map(); // deviceId -> WebSocket
 const pendingCommandAcks = new Map(); // requestId -> { resolve, timer }
 
 // Helper to format Device for Flutter model
-function formatDeviceForApp(dev, userId = null, userRole = null) {
+function formatDeviceForApp(dev, userId = null, userRole = null, userEmail = null) {
   const isOwner = dev.owner ? String(dev.owner) === String(userId) : false;
-  const isAdmin = userRole === 'admin';
+  const isAdmin = userRole === 'admin' || (userEmail && userEmail.toLowerCase() === 'admin@college.edu');
 
   let canOpen = isAdmin || isOwner;
   let canClose = isAdmin || isOwner;
 
   if (!canOpen && dev.authorizedUsers) {
-    const authRecord = dev.authorizedUsers.find((a) => String(a.user) === String(userId));
+    const authRecord = dev.authorizedUsers.find((a) =>
+      (userId && a.user && String(a.user) === String(userId)) ||
+      (userEmail && a.email && a.email.toLowerCase() === userEmail.toLowerCase())
+    );
     if (authRecord) {
       canOpen = authRecord.canOpen;
       canClose = authRecord.canClose;
@@ -579,7 +582,7 @@ router.get('/devices', async (req, res) => {
     if (isMongoConnected) {
       // Find current user's role
       let userRole = 'user';
-      if (userId) {
+      if (userId && mongoose.Types.ObjectId.isValid(userId)) {
         const u = await User.findById(userId);
         if (u) userRole = u.role;
       }
@@ -590,17 +593,20 @@ router.get('/devices', async (req, res) => {
       let query = {};
       // If NOT admin, only return devices owned by user or shared with user
       if (userRole !== 'admin') {
-        query = {
-          $or: [
-            { owner: userId },
-            { 'authorizedUsers.user': userId },
-            { 'authorizedUsers.email': userEmail },
-          ],
-        };
+        const conditions = [];
+        if (userId && mongoose.Types.ObjectId.isValid(userId)) {
+          conditions.push({ owner: new mongoose.Types.ObjectId(userId) });
+          conditions.push({ 'authorizedUsers.user': new mongoose.Types.ObjectId(userId) });
+        }
+        if (userEmail) {
+          conditions.push({ 'authorizedUsers.email': userEmail.toLowerCase() });
+        }
+        // If regular user has no permissions yet, query returns empty list
+        query = conditions.length > 0 ? { $or: conditions } : { id: '__none__' };
       }
 
       const docs = await Device.find(query);
-      const formatted = docs.map((d) => formatDeviceForApp(d, userId, userRole));
+      const formatted = docs.map((d) => formatDeviceForApp(d, userId, userRole, userEmail));
       return res.json({ devices: formatted });
     }
 
@@ -622,7 +628,7 @@ router.get('/devices/:id', async (req, res) => {
       if (!dev) return res.status(404).json({ error: 'Device not found' });
 
       let userRole = userEmail === 'admin@college.edu' ? 'admin' : 'user';
-      return res.json({ device: formatDeviceForApp(dev, userId, userRole) });
+      return res.json({ device: formatDeviceForApp(dev, userId, userRole, userEmail) });
     }
 
     const dev = inMemoryDevices.find((d) => d.id === deviceId);
@@ -758,7 +764,7 @@ router.post('/devices/:id/command', async (req, res) => {
     return res.json({
       ackId: requestId,
       physicalStateConfirmed: true,
-      device: isMongoConnected ? formatDeviceForApp(updatedDevice) : updatedDevice,
+      device: isMongoConnected ? formatDeviceForApp(updatedDevice, userId, userEmail === 'admin@college.edu' ? 'admin' : 'user', userEmail) : updatedDevice,
       message: `Door ${isOpen ? 'unlocked and opened' : 'closed and locked'} successfully.`,
     });
   } catch (err) {

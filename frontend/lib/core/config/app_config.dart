@@ -22,14 +22,13 @@ class AppConfig {
   /// Factory constructor that resolves configuration from compile-time flags
   /// or falls back to secure defaults for the engineering demo.
   factory AppConfig.fromEnvironment() {
-    const envString = String.fromEnvironment('ENV', defaultValue: 'dev');
+    const envString = String.fromEnvironment('ENV', defaultValue: 'prod');
     const baseUrl = String.fromEnvironment(
       'API_BASE_URL',
-      defaultValue: 'https://api.secure-access.internal/v1',
+      defaultValue: 'https://securedoor-api.onrender.com/v1',
     );
-    // By default in demo/college lab environment, mock mode is enabled so it runs
-    // seamlessly without requiring a running backend on day 1.
-    const mockFlag = bool.fromEnvironment('MOCK_MODE', defaultValue: true);
+    // Real production backend by default - connects to Render and MongoDB Atlas
+    const mockFlag = bool.fromEnvironment('MOCK_MODE', defaultValue: false);
 
     final environment = switch (envString.toLowerCase()) {
       'prod' || 'production' => AppEnvironment.production,
